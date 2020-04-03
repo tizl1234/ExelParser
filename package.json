@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/tizl1234/ExelParser.git"
+    "type": "git",
+    "url": "https://github.com/tizl1234/ExelParser.git"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,6 +13,7 @@
   "author": "Izosimov",
   "license": "ISC",
   "dependencies": {
+    "exceljs": "^3.8.2",
     "soap": "^0.31.0"
   }
 }

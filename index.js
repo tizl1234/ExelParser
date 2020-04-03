@@ -1,8 +1,10 @@
 const soap = require('soap');
+const config = require('./credentials.json');
+const excelParser = require('./excel-parser.js')
 
 const url = "http://ws.prima-inform.ru/PrimaService.asmx?wsdl";
 
-var Autentication ='<AuthHeader xmlns="http://ws.prima-inform.ru/"><Username></Username><Password></Password></AuthHeader>'
+var Autentication =`<AuthHeader xmlns="http://ws.prima-inform.ru/"><Username>${config.username}</Username><Password>${config.password}</Password></AuthHeader>`
 
 soap.createClient(url, (err, client) => {
     client.addSoapHeader(Autentication);
@@ -16,6 +18,7 @@ soap.createClient(url, (err, client) => {
     // })
     getOrgReport(client);
 });
+
 /**
  *
  * @param {Client} client - инстанс клиета от @function createClient 
@@ -56,12 +59,15 @@ function getOrgReport (client) {
  * @param {Client} client 
  * @param {Object} str - копияе result
  */
+
+//'174c2444-7faa-4b02-9153-841e59258634'
 function getReport(client, str) {
     client.GetFullReport({requestId: str.RunRequestResult.RequestId, format: 'Json'}, (err, result, rawRes, head, req) => {
         if (err) {
             console.log(err)
         } else {
-            toJson(result.GetFullReportResult);
+            var json = toJson(result.GetFullReportResult);
+            excelParser.parseToExcel(json)
             // console.log(result.GetFullReportResult)
         }
     })
@@ -77,11 +83,15 @@ function myAssign(target, ...sources) {
     return target;
   }
 
+  /**
+   * 
+   * @param {string} data base64 string 
+   */
 function toJson (data) {
     let dataBuffer = Buffer.from(data, 'base64');
 
     let text = dataBuffer.toString("utf8")
 
     let json = JSON.parse(text);
-    console.log(json)
+    return json
 }
