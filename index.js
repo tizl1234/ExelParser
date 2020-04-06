@@ -4,7 +4,7 @@ const excelParser = require('./excel-parser.js')
 
 const url = "http://ws.prima-inform.ru/PrimaService.asmx?wsdl";
 
-var Autentication =`<AuthHeader xmlns="http://ws.prima-inform.ru/"><Username>${config.username}</Username><Password>${config.password}</Password></AuthHeader>`
+const Autentication =`<AuthHeader xmlns="http://ws.prima-inform.ru/"><Username>${config.username}</Username><Password>${config.password}</Password></AuthHeader>`
 
 soap.createClient(url, (err, client) => {
     client.addSoapHeader(Autentication);
@@ -16,41 +16,44 @@ soap.createClient(url, (err, client) => {
     //     console.log(result.GetServiceInfoResult.Sources.SourceInfo)
     //     }
     // })
-    getOrgReport(client);
+    getOrgReport(client, config.innArray);
 });
 
 /**
  *
- * @param {Client} client - инстанс клиета от @function createClient 
+ * @param {Client} client - инстанс клиета от @function createClient
+ * @param {Array} innValues - массив значений ИНН 
  */
-function getOrgReport (client) {
+function getOrgReport (client, innValues) {
     
-    client.RunRequest({ query: {
-        Properties: [
-            {
-                PropertyValue: [
-                    {
-                        ProprtyId: 113,
-                        Value: 7706032060
-                    },
-                ]
+    innValues.forEach((value, index) => {
+        client.RunRequest({ query: {
+            Properties: [
+                {
+                    PropertyValue: [
+                        {
+                            ProprtyId: 113,
+                            Value: value
+                        },
+                    ]
+                }
+            ],
+            SourcesId: {
+                int: [301, 303, 1001450, 1001230, 991086, 1001120, 1001550, 1001340,
+                    1001700, 1001650, 99106999, 718, 711, 712, 714, 713,120723, 
+                    991090, 120725, 991095, 120730, 715, 719, 720, 721,]
             }
-        ],
-        SourcesId: {
-            int: [301, 303, 1001450, 1001230, 991086, 1001120, 1001550, 1001340,
-                1001700, 1001650, 99106999, 718, 711, 712, 714, 713,120723, 
-                991090, 120725, 991095, 120730, 715, 719, 720, 721,]
-        }
-    },
-    }, (err, result) => {
-        if (err) { 
-            console.log(err)
-        } else {
-            // console.log(result)
-            let str = myAssign({}, result);
-
-            setTimeout(getReport, 1500, client, str);
-        }
+        },
+        }, (err, result) => {
+            if (err) { 
+                console.log(err)
+            } else {
+                // console.log(result)
+                let str = myAssign({}, result);
+    
+                setTimeout(getReport, 2000, client, str, index);
+            }
+        });
     });
 }
 
@@ -61,13 +64,13 @@ function getOrgReport (client) {
  */
 
 //'174c2444-7faa-4b02-9153-841e59258634'
-function getReport(client, str) {
+function getReport(client, str, innIndex) {
     client.GetFullReport({requestId: str.RunRequestResult.RequestId, format: 'Json'}, (err, result, rawRes, head, req) => {
         if (err) {
             console.log(err)
         } else {
             var json = toJson(result.GetFullReportResult);
-            excelParser.parseToExcel(json)
+            excelParser.parseToExcel(json, innIndex);
             // console.log(result.GetFullReportResult)
         }
     })

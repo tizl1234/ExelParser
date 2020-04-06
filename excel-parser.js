@@ -32,7 +32,7 @@ function getValue (data, mapArr) {
     return data
 }
 
-function parseToExcel (json) {
+function parseToExcel (json, innIndex) {
     workbook.xlsx.readFile(filename)
     .then(function() {
       let workSheet = workbook.getWorksheet(1)
