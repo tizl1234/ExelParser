@@ -1,7 +1,7 @@
 const soap = require('soap');
 const config = require('./credentials.json');
 const excelParser = require('./excel-parser.js')
-
+const innValues = config.innArray;
 const url = "http://ws.prima-inform.ru/PrimaService.asmx?wsdl";
 
 const Autentication =`<AuthHeader xmlns="http://ws.prima-inform.ru/"><Username>${config.username}</Username><Password>${config.password}</Password></AuthHeader>`
@@ -16,24 +16,25 @@ soap.createClient(url, (err, client) => {
     //     console.log(result.GetServiceInfoResult.Sources.SourceInfo)
     //     }
     // })
-    getOrgReport(client, config.innArray);
+    innValues.forEach((value, index) => {
+        getOrgReport(client, value, index);
+    });
 });
 
 /**
  *
  * @param {Client} client - инстанс клиета от @function createClient
- * @param {Array} innValues - массив значений ИНН 
+ * @param {Number} innValues - ИНН
  */
-function getOrgReport (client, innValues) {
+function getOrgReport (client, innValue, index) {
     
-    innValues.forEach((value, index) => {
         client.RunRequest({ query: {
             Properties: [
                 {
                     PropertyValue: [
                         {
                             ProprtyId: 113,
-                            Value: value
+                            Value: innValue
                         },
                     ]
                 }
@@ -50,11 +51,9 @@ function getOrgReport (client, innValues) {
             } else {
                 // console.log(result)
                 let str = myAssign({}, result);
-    
-                setTimeout(getReport, 2000, client, str, index);
+                getReport(client, str, index)
             }
-        });
-    });
+        }, {timeout: 1000});
 }
 
 /**
@@ -73,7 +72,7 @@ function getReport(client, str, innIndex) {
             excelParser.parseToExcel(json, innIndex);
             // console.log(result.GetFullReportResult)
         }
-    })
+    }, {timeout: 1000})
 }
 
 function myAssign(target, ...sources) {
@@ -98,3 +97,4 @@ function toJson (data) {
     let json = JSON.parse(text);
     return json
 }
+let sleep = () => {};
