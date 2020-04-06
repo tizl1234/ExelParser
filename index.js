@@ -6,6 +6,15 @@ const url = "http://ws.prima-inform.ru/PrimaService.asmx?wsdl";
 
 const Autentication =`<AuthHeader xmlns="http://ws.prima-inform.ru/"><Username>${config.username}</Username><Password>${config.password}</Password></AuthHeader>`
 
+const exec = require('child_process').execSync;
+const sleep = time => (
+   (time = parseInt(time)),
+   (time > 0
+           ? exec(`sleep ${time}`)
+           : null
+   )
+);
+
 soap.createClient(url, (err, client) => {
     client.addSoapHeader(Autentication);
     // console.log(client.describe().PrimaService.PrimaServiceSoap.GetFullReport);
@@ -18,6 +27,7 @@ soap.createClient(url, (err, client) => {
     // })
     innValues.forEach((value, index) => {
         getOrgReport(client, value, index);
+        sleep(1)
     });
 });
 
@@ -51,9 +61,10 @@ function getOrgReport (client, innValue, index) {
             } else {
                 // console.log(result)
                 let str = myAssign({}, result);
+                sleep(1)
                 getReport(client, str, index)
             }
-        }, {timeout: 1000});
+        });
 }
 
 /**
@@ -72,7 +83,7 @@ function getReport(client, str, innIndex) {
             excelParser.parseToExcel(json, innIndex);
             // console.log(result.GetFullReportResult)
         }
-    }, {timeout: 1000})
+    })
 }
 
 function myAssign(target, ...sources) {
@@ -97,4 +108,3 @@ function toJson (data) {
     let json = JSON.parse(text);
     return json
 }
-let sleep = () => {};
